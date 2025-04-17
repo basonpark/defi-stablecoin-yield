@@ -49,6 +49,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
     error PriceFeedNotSet();
     error LuminaCoinNotSet();
     error LiquidationNotImplemented(); // Placeholder
+    error PriceFeedInvalid();
 
     /**
      * @notice Constructor
@@ -111,6 +112,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
     /**
      * @notice Borrows LuminaCoin against deposited collateral.
      * @param _amount The amount of LuminaCoin to borrow (in LMC decimals, e.g., 18).
+     * @dev Calculates the maximum borrowable amount based on the user's collateral.
      */
     function borrowLuminaCoin(uint256 _amount) external nonReentrant {
         if (_amount == 0) revert AmountMustBeGreaterThanZero();
@@ -152,7 +154,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
          if (!success) revert TransferFailed();
 
          // Burn the repaid tokens held by this contract
-         luminaCoin.burnHeldTokens(amountToRepay);
+         luminaCoin.burn(address(this), amountToRepay); // Burn tokens held by this contract
 
          emit LoanRepaid(msg.sender, amountToRepay);
     }
@@ -181,8 +183,11 @@ contract CollateralManager is Ownable, ReentrancyGuard {
 
         // Calculate collateral to seize: value = debtValue * (100 + bonus) / 100
         // We need debt value in terms of ETH using the price feed to calculate ETH collateral amount
-        uint256 ethPrice = getEthPrice(); // Has oracle decimals (e.g., 8)
-        uint256 priceFeedDecimals = ethUsdPriceFeed.decimals();
+        (, int256 price, , , ) = ethUsdPriceFeed.latestRoundData(); // Get price from oracle
+        if (price <= 0) revert PriceFeedInvalid(); // Check for valid price
+        uint256 ethPrice = uint256(price); // Convert to uint256
+
+        uint8 priceFeedDecimals = ethUsdPriceFeed.decimals();
 
         // Value of debt in USD (scaled by 18 + 8 = 26 decimals) = debtToRepay * ethPrice
         // We want the equivalent value in ETH (18 decimals)
@@ -212,7 +217,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
         if (!successTransfer) revert TransferFailed();
 
         // 2. Burn the repaid LMC
-        luminaCoin.burnHeldTokens(debtToRepay);
+        luminaCoin.burn(address(this), debtToRepay);
 
         // 3. Send ETH collateral to liquidator
         (bool successSend, ) = payable(msg.sender).call{value: ethCollateralToSeize}("");
@@ -297,6 +302,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
      * @notice Internal function to calculate collateral value from ETH amount.
      * @param _ethAmount Amount of ETH collateral (18 decimals).
      * @return value The total value in USD (18 decimals).
+     * @dev Calculates the value using the ETH price from the oracle.
      */
     function getAccountCollateralValueInternal(uint256 _ethAmount) internal view returns (uint256) {
         if (_ethAmount == 0) return 0;
@@ -311,6 +317,7 @@ contract CollateralManager is Ownable, ReentrancyGuard {
      * @param _collateralValue User's collateral value in USD (18 decimals).
      * @param _debtValue User's debt value in LMC (18 decimals).
      * @return healthFactor Scaled by PRECISION (1e18).
+     * @dev A health factor below 1 indicates the position is undercollateralized.
      */
     function getHealthFactorInternal(uint256 _collateralValue, uint256 _debtValue) internal pure returns (uint256) {
         if (_debtValue == 0) {

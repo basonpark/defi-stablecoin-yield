@@ -4,8 +4,9 @@ import { formatEther, parseEther } from "viem"; // Using Viem helpers
 async function main() {
   console.log("Deploying contracts...");
 
+  const publicClient = await hre.viem.getPublicClient(); // Get public client
+
   // --- Deployment Parameters ---
-  // TODO: Replace with actual Sepolia Chainlink ETH/USD address or deploy a mock for local testing
   const ethUsdPriceFeedAddress = "0x694AA1769357215DE4FAC081bf1f309aDC325306"; // Sepolia ETH/USD
   const initialOwner = (await hre.viem.getWalletClients())[0].account.address; // Use first account from hardhat node/config
   const initialRewardRate = parseEther("0.00001"); // Example: 0.00001 ETH per second per staked ETH (adjust as needed!)
@@ -44,7 +45,7 @@ async function main() {
   // --- Post-Deployment Configuration ---
   console.log("Configuring CollateralManager as LuminaCoin minter...");
   const hash = await luminaCoin.write.setCollateralManager([collateralManager.address]);
-  await hre.viem.waitForTransactionReceipt({ hash });
+  await publicClient.waitForTransactionReceipt({ hash }); // Use public client
   console.log("CollateralManager set successfully in LuminaCoin.");
 
   // --- Optional: Fund Staking Pool with ETH Rewards ---
@@ -56,7 +57,7 @@ async function main() {
         to: stakingPool.address,
         value: rewardFundAmount,
       });
-      await hre.viem.waitForTransactionReceipt({ hash: fundHash });
+      await publicClient.waitForTransactionReceipt({ hash: fundHash }); // Use public client
       console.log("StakingPool funded.");
   }
 

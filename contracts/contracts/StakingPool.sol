@@ -42,6 +42,7 @@ contract StakingPool is Ownable, ReentrancyGuard {
     error TransferFailed();
     error NothingToClaim();
     error InvalidRewardRate();
+    error InvalidAddress();
 
     /**
      * @notice Constructor
@@ -144,6 +145,7 @@ contract StakingPool is Ownable, ReentrancyGuard {
      * @notice Calculates the amount of rewards earned by a user but not yet claimed.
      * @param _account The address of the user.
      * @return The amount of rewards earned (scaled by PRECISION).
+     * @dev Based on the reward rate, time elapsed, and staked balance.
      */
     function earned(address _account) public view returns (uint256) {
         uint256 currentRewardPerToken = rewardPerToken();
@@ -219,8 +221,9 @@ contract StakingPool is Ownable, ReentrancyGuard {
 
     /**
      * @notice Internal function to handle the actual reward payment (ETH or ERC20).
-     * @param _user The address to pay the reward to.
-     * @param _amount The amount of reward to pay (scaled by PRECISION).
+     * @param _user The address receiving the reward.
+     * @param _amount The amount of reward token to pay.
+     * @dev Internal function called by claimReward. Requires sufficient reward token balance in the contract.
      */
     function _payReward(address _user, uint256 _amount) internal {
         if (_amount == 0) return; // Nothing to pay
@@ -254,4 +257,6 @@ contract StakingPool is Ownable, ReentrancyGuard {
         }
         emit RewardPaid(_user, _amount);
     }
+
+    receive() external payable {} //allows funding the contract directly with ETH for rewards
 }

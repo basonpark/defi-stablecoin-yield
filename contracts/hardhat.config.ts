@@ -1,16 +1,16 @@
 
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem"; // Use Viem toolbox
+import "@nomicfoundation/hardhat-toolbox-viem"; 
 import "@nomicfoundation/hardhat-ethers"; // Still needed for some plugins potentially? Or remove if pure Viem
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import dotenv from "dotenv";
 
-dotenv.config(); // Load .env file
+dotenv.config(); 
 
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "[https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID";
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "your_private_key_here"; // Placeholder - DO NOT COMMIT ACTUAL KEY
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "your_etherscan_api_key"; // Placeholder
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL; //alchemy
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -28,15 +28,9 @@ const config: HardhatUserConfig = {
     },
     sepolia: { // Ethereum Testnet
       url: SEPOLIA_RPC_URL,
-      accounts: PRIVATE_KEY !== "your_private_key_here" ? [PRIVATE_KEY] : [], // Use account only if key is provided
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [], // Use account only if key is provided
       chainId: 11155111,
     },
-    // Add other networks like Goerli or Mainnet if needed
-    // goerli: {
-    //   url: process.env.GOERLI_RPC_URL || "YOUR_GOERLI_RPC_URL",
-    //   accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-    //   chainId: 5,
-    // },
   },
   gasReporter: { // Optional: For gas usage analysis
     enabled: process.env.REPORT_GAS !== undefined,
