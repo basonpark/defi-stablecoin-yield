@@ -1,244 +1,399 @@
+"use client"; // Needed for CodeBlock interactivity if not static
+
 import React from 'react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { motion } from 'framer-motion'; // Import motion
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Lightbulb, Library, Calculator, Coins, TrendingUp, Terminal, ShieldCheck, Scale } from 'lucide-react'; // Added more icons
+import { CodeBlock } from '@/components/CodeBlock'; // Import the new component
+import { Lightbulb, Library, Calculator, Coins, TrendingUp, ShieldCheck, Scale, Zap, Settings, Network, Handshake, Feather } from 'lucide-react';
 
-// Function to render math formulas (simple version)
-const MathFormula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="my-3 p-3 bg-muted rounded font-mono text-sm overflow-x-auto">
-    {children}
-  </div>
+// --- Code Snippets (Extracted & Simplified from Contract Code) ---
+const CODE = {
+  collateralManager: {
+    deposit: `
+function deposit() external payable nonReentrant {
+    uint256 amount = msg.value;
+    require(amount > 0, "Deposit amount must be positive");
+    collateralBalances[msg.sender] += amount;
+    emit CollateralDeposited(msg.sender, amount);
+}
+    `,
+    borrowLmc: `
+function borrowLmc(uint256 _amount) external nonReentrant {
+    require(_amount > 0, "Borrow amount must be positive");
+    require(getHealthFactor(msg.sender) > PRECISION, "Health factor too low"); // Check HF > 1.0
+
+    uint256 collateralValueUsd = getCollateralValueUSD(msg.sender);
+    uint256 maxBorrowableUsd = (collateralValueUsd * LTV_RATIO_PERCENT) / 100;
+    uint256 currentDebtUsd = getDebtValueUSD(msg.sender);
+    uint256 requestedDebtUsd = (_amount * getLmcPriceUSD()) / PRECISION; // Assuming LMC price = $1
+
+    require(currentDebtUsd + requestedDebtUsd <= maxBorrowableUsd, "Exceeds LTV ratio");
+
+    debtBalances[msg.sender] += _amount;
+    bool success = luminaCoin.mint(msg.sender, _amount); // Mint LMC to user
+    require(success, "Minting LMC failed");
+
+    emit LoanBorrowed(msg.sender, _amount);
+}
+    `,
+    repayLmc: `
+function repayLmc(uint256 _amount) external nonReentrant {
+    require(_amount > 0, "Repay amount must be positive");
+    uint256 currentDebt = debtBalances[msg.sender];
+    require(_amount <= currentDebt, "Repay amount exceeds debt");
+
+    debtBalances[msg.sender] = currentDebt - _amount;
+
+    // Transfer LMC from user, then burn
+    bool sent = luminaCoin.transferFrom(msg.sender, address(this), _amount);
+    require(sent, "LMC transfer failed");
+    bool burned = luminaCoin.burn(_amount); // Burn the repaid LMC
+    require(burned, "LMC burn failed");
+
+    emit LoanRepaid(msg.sender, _amount);
+}
+    `,
+    withdrawCollateral: `
+function withdrawCollateral(uint256 _amount) external nonReentrant {
+    require(_amount > 0, "Withdraw amount must be positive");
+    uint256 currentCollateral = collateralBalances[msg.sender];
+    require(_amount <= currentCollateral, "Withdraw amount exceeds collateral");
+
+    collateralBalances[msg.sender] = currentCollateral - _amount;
+
+    // Check health factor AFTER hypothetical withdrawal
+    require(getHealthFactor(msg.sender) > PRECISION, "Withdrawal would drop HF below 1.0");
+
+    (bool success, ) = payable(msg.sender).call{value: _amount}("");
+    require(success, "ETH transfer failed");
+
+    emit CollateralWithdrawn(msg.sender, _amount);
+}
+    `,
+    getHealthFactor: `
+function getHealthFactor(address _user) public view returns (uint256) {
+    uint256 collateralValue = getCollateralValueUSD(_user);
+    uint256 debtValue = getDebtValueUSD(_user);
+
+    if (debtValue == 0) return type(uint256).max; // Infinite HF if no debt
+
+    // HF = (Collateral * Liquidation Threshold) / Debt
+    uint256 thresholdCollateral = (collateralValue * LIQUIDATION_THRESHOLD_PERCENT) / 100;
+    return (thresholdCollateral * PRECISION) / debtValue;
+}
+    `,
+    liquidate: `
+function liquidate(address _user) external nonReentrant {
+    require(getHealthFactor(_user) < PRECISION, "Health factor is not below 1.0");
+
+    uint256 debtToCover = debtBalances[_user];
+    uint256 collateralToSeize = calculateCollateralToSeize(debtToCover);
+
+    require(collateralBalances[_user] >= collateralToSeize, "Not enough user collateral");
+
+    // Liquidator pays the debt in LMC
+    bool sent = luminaCoin.transferFrom(msg.sender, address(this), debtToCover);
+    require(sent, "Liquidator LMC transfer failed");
+    bool burned = luminaCoin.burn(debtToCover);
+    require(burned, "LMC burn failed");
+
+    // Clear user's debt and reduce their collateral
+    debtBalances[_user] = 0;
+    collateralBalances[_user] -= collateralToSeize;
+
+    // Transfer seized collateral (ETH) to liquidator
+    (bool success, ) = payable(msg.sender).call{value: collateralToSeize}("");
+    require(success, "Collateral transfer to liquidator failed");
+
+    emit PositionLiquidated(_user, msg.sender, debtToCover, collateralToSeize);
+}
+    `,
+  },
+  luminaCoin: {
+    mint: `
+function mint(address _to, uint256 _amount) external override returns (bool) {
+    require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
+    _mint(_to, _amount);
+    return true;
+}
+    `,
+    burn: `
+function burn(uint256 _amount) external override returns (bool) {
+    require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter"); // Usually the manager contract
+    _burn(msg.sender, _amount); // Contract burns its own tokens
+    return true;
+}
+    `,
+  },
+  stakingPool: {
+    stake: `
+function stake() external payable nonReentrant {
+    uint256 amount = msg.value;
+    require(amount > 0, "Stake amount must be positive");
+
+    // Update reward tracking *before* changing balance
+    _updateReward(msg.sender);
+
+    stakedBalances[msg.sender] += amount;
+    totalStaked += amount;
+
+    emit Staked(msg.sender, amount);
+}
+    `,
+    unstake: `
+function unstake(uint256 _amount) external nonReentrant {
+    require(_amount > 0, "Unstake amount must be positive");
+    uint256 currentStake = stakedBalances[msg.sender];
+    require(_amount <= currentStake, "Unstake amount exceeds stake");
+
+    // Claim rewards first, then update balance & transfer
+    _claimRewardInternal(msg.sender); // Implicit claim on unstake
+
+    stakedBalances[msg.sender] = currentStake - _amount;
+    totalStaked -= _amount;
+
+    // Transfer ETH back to user
+    (bool success, ) = payable(msg.sender).call{value: _amount}("");
+    require(success, "ETH transfer failed");
+
+    emit Unstaked(msg.sender, _amount);
+}
+    `,
+    claimReward: `
+function claimReward() external nonReentrant {
+    _claimRewardInternal(msg.sender);
+}
+
+function _claimRewardInternal(address _user) internal {
+    uint256 reward = earned(_user);
+    if (reward > 0) {
+        rewards[_user] = 0; // Reset earned amount
+        _payReward(_user, reward); // Pay out the reward (internal ETH transfer)
+    }
+    // Update reward tracking point regardless of payout
+    _updateReward(_user);
+}
+    `,
+  }
+};
+
+// Helper for styling sections
+const SectionCard: React.FC<{ title: string; icon?: React.ReactNode; children: React.ReactNode; className?: string }> = ({ title, icon, children, className = '' }) => (
+  <Card className={`mb-8 shadow-md border-l-4 border-primary ${className}`}>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-2xl">
+        {icon} {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4 text-base pl-6">
+      {children}
+    </CardContent>
+  </Card>
 );
 
 export default function HowItWorksPage() {
-  // Example values (replace with actual contract values if dynamically fetched)
-  const liquidationThresholdPercent = 150;
   const minHealthFactor = 1.0;
+  const liquidationThresholdPercent = 80;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-6 text-center flex items-center justify-center gap-3">
-        <Lightbulb className="w-8 h-8" /> How Lumina Finance Works ✨
-      </h1>
-      <p className="text-lg text-muted-foreground mb-10 text-center">
-        Ready for a peek behind the curtain? Discover how Lumina turns your crypto into yield-generating magic!
-        We'll break down the smart contracts and number-crunching involved. Don't worry, it's cooler than it sounds.
-      </p>
+    <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <motion.div // Add animation to the main container
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-4xl font-bold mb-6 text-center flex items-center justify-center gap-3 text-primary">
+          <Feather className="w-8 h-8" /> The Lumina Lowdown 
+        </h1>
+        <p className="text-lg text-muted-foreground mb-12 text-center">
+          Curious how Lumina turns your crypto into more crypto? Let's pull back the curtain and explore the smart contract magic!
+          Think of it as a backstage tour of decentralized finance.
+        </p>
 
-      <Accordion type="single" collapsible className="w-full space-y-4 mb-10">
+        {/* --- Philosophy --- */}
+        <SectionCard title="Our Philosophy: Simple & Secure DeFi" icon={<Lightbulb className="w-6 h-6 text-yellow-500" />}>
+          <p>
+            DeFi can feel like a maze. Lumina aims to be a clear path. Our goal is to provide straightforward ways to leverage your ETH – either as collateral for stablecoin loans (LMC) or by staking it directly for rewards.
+          </p>
+          <p>
+            We believe in transparency (hence this page!), security (audits are key!), and user control. Your keys, your crypto, your decisions.
+          </p>
+        </SectionCard>
 
-        {/* === Overview === */}
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="text-lg font-semibold">
-            <Library className="w-5 h-5 mr-2" /> What's the Big Idea?
-          </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
-            <p>
-              Lumina Finance is a decentralized lending platform built on Ethereum (specifically, the Sepolia testnet for now!).
-              Our mission? To let you leverage your ETH holdings in exciting new ways.
-            </p>
-            <p>
-              Think of it like this: You deposit your ETH as collateral, and in return, you can borrow our native stablecoin, <strong className="font-semibold">LuminaCoin (LMC)</strong>.
-              But wait, there's more! You can also stake your ETH directly to earn yield generated by the protocol.
-            </p>
-            <p>
-              It's all powered by a set of transparent, automated smart contracts working together like a well-oiled (digital) machine.
-            </p>
-          </AccordionContent>
-        </AccordionItem>
+        {/* --- Core Contracts Overview --- */}
+        <SectionCard title="The Core Trio: Our Smart Contract Stars" icon={<Network className="w-6 h-6 text-blue-500" />}>
+          <p>
+            Three main contracts run the show:
+          </p>
+          <ul className="list-disc list-inside space-y-2 pl-4">
+            <li><strong className="font-semibold">LuminaCoin (LMC):</strong> Our very own stablecoin, pegged to USD. It's minted when you borrow and burned when you repay.</li>
+            <li><strong className="font-semibold">CollateralManager:</strong> The central hub! Handles your ETH deposits, LMC borrowing/repaying, and keeps an eye on loan health (the famous Health Factor!).</li>
+            <li><strong className="font-semibold">StakingPool:</strong> Simple and sweet. Stake ETH here, earn more ETH as rewards based on pool performance.</li>
+          </ul>
+        </SectionCard>
 
-        {/* === The Contracts === */}
-        <AccordionItem value="item-2">
-          <AccordionTrigger className="text-lg font-semibold">
-            <Terminal className="w-5 h-5 mr-2" /> The Trio of Trust: Our Smart Contracts
-          </AccordionTrigger>
-          <AccordionContent className="space-y-6 pl-8 text-base">
-            <p className="mb-4">Lumina runs on three core smart contracts. Let's meet the crew:</p>
+        {/* --- CollateralManager Deep Dive --- */}
+        <SectionCard title="CollateralManager: The Engine Room" icon={<Settings className="w-6 h-6 text-gray-600" />} className="border-green-500">
+          <p>
+            This contract is where most of the borrowing action happens. Let's see how it works.
+          </p>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Coins className="w-5 h-5 text-primary"/> LuminaCoin (LMC)</CardTitle>
-                <CardDescription>The Stable Heartbeat</CardDescription>
-              </CardHeader>
-              <CardContent>
-                LMC is our very own ERC20 token, designed to maintain a stable value (pegged 1:1 to USD, notionally).
-                It's the currency you borrow and repay within the system. Crucially, LMC is only <strong className="font-semibold">minted</strong> when users borrow against their collateral and <strong className="font-semibold">burned</strong> when loans are repaid, ensuring its value is always backed.
-              </CardContent>
-            </Card>
+          <h3 className="font-semibold text-lg mt-6 mb-2">Depositing ETH (Your Collateral)</h3>
+          <p>To borrow, you first need to provide collateral. Sending ETH to the contract's `deposit` function locks it up as backing for your future loan.</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.deposit} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Scale className="w-5 h-5 text-primary"/> CollateralManager</CardTitle>
-                <CardDescription>The Brains of the Operation</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p>This contract is the central hub, managing all the core lending functions:</p>
-                <ul className="list-disc list-inside space-y-1 pl-4">
-                  <li><strong className="font-semibold">Deposits:</strong> Securely holds your deposited ETH collateral.</li>
-                  <li><strong className="font-semibold">Borrows:</strong> Calculates how much LMC you can borrow based on your collateral and the current ETH price (fetched from a Chainlink Price Feed oracle!). It then mints the LMC for you.</li>
-                  <li><strong className="font-semibold">Repayments:</strong> Accepts your LMC, burns it (removing it from circulation), and updates your debt balance.</li>
-                  <li><strong className="font-semibold">Withdrawals:</strong> Allows you to retrieve your deposited ETH, provided your loan is sufficiently collateralized (more on Health Factor below!).</li>
-                  <li><strong className="font-semibold">Price Oracle Integration:</strong> Constantly checks the real-time ETH/USD price to accurately value collateral and debt.</li>
-                  <li><strong className="font-semibold">Liquidation Logic:</strong> Monitors the 'Health Factor' of loans. If it drops too low, this contract handles the liquidation process to protect the protocol (though liquidations aren't fully implemented in this version yet!).</li>
-                </ul>
-              </CardContent>
-            </Card>
+          <h3 className="font-semibold text-lg mt-6 mb-2">Borrowing LuminaCoin (LMC)</h3>
+          <p>Once you have collateral, you can borrow LMC using `borrowLmc`. The contract checks two crucial things: your Loan-to-Value (LTV) ratio (can't borrow more than ~66% of your collateral's value) and your Health Factor (must be above 1.0).</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.borrowLmc} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-primary"/> StakingPool</CardTitle>
-                <CardDescription>The Yield Engine</CardDescription>
-              </CardHeader>
-              <CardContent>
-                Want to earn some passive income on your ETH? This is the place! The Staking Pool allows users to directly stake their ETH.
-                In return, they earn a share of rewards distributed to the pool (these rewards might come from protocol fees or external funding in different versions).
-                You can <strong className="font-semibold">stake</strong>, <strong className="font-semibold">unstake</strong>, and <strong className="font-semibold">claim</strong> your earned ETH rewards through this contract.
-                Your reward share is calculated based on how much you've staked relative to the total amount in the pool.
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
+          <h3 className="font-semibold text-lg mt-6 mb-2">The Health Factor: Your Loan's Lifeline</h3>
+          <p>Think of this as a safety score for your loan. It compares the value of your collateral (adjusted by the liquidation threshold) to the value of your debt. </p>
+          <MathFormula>
+            HF = (Collateral Value * Liquidation Threshold %) / Debt Value
+          </MathFormula>
+          <p>A Health Factor <strong className='text-red-600'>below 1.0</strong> means your position is undercollateralized and at risk of liquidation! Keep it healthy by adding collateral or repaying debt.</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.getHealthFactor} />
+          <Alert variant="destructive" className="mt-4">
+            <ShieldCheck className="h-4 w-4" />
+            <AlertTitle>Liquidation Risk!</AlertTitle>
+            <AlertDescription>
+              If your Health Factor drops below {minHealthFactor.toFixed(1)}, anyone can call the `liquidate` function to repay your debt in exchange for your collateral (plus a bonus!). Don't let this happen!
+            </AlertDescription>
+          </Alert>
 
-        {/* === Calculations: Health Factor === */}
-        <AccordionItem value="item-3">
-          <AccordionTrigger className="text-lg font-semibold">
-            <Calculator className="w-5 h-5 mr-2" /> Math Magic: The Health Factor
-          </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
-            <p>
-              Okay, let's talk numbers! The most crucial calculation in Lumina is the <strong className="font-semibold">Health Factor (HF)</strong>.
-              It's a single number that represents the safety of your loan. Think of it as a buffer protecting you (and the protocol) from liquidation if the value of your collateral drops.
-            </p>
-            <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800">
-              <ShieldCheck className="h-4 w-4 !text-blue-600" />
-              <AlertTitle>Why is Health Factor Important?</AlertTitle>
-              <AlertDescription>
-                If your Health Factor drops below <strong className="font-semibold">{minHealthFactor.toFixed(1)}</strong>, your position becomes eligible for liquidation.
-                Keeping your HF healthy (above {minHealthFactor.toFixed(1)}) is key to avoiding this!
-              </AlertDescription>
-            </Alert>
-            <p>Here's the magic formula:</p>
-            <MathFormula>
-              Health Factor = (Total Collateral Value in USD * Liquidation Threshold) / Total Debt Value in USD
-            </MathFormula>
-            <p>Let's break it down:</p>
-            <ul className="list-disc list-inside space-y-2 pl-4">
-              <li>
-                <strong className="font-semibold">Total Collateral Value (USD):</strong> This is the current market value of your deposited ETH.
-                <MathFormula>ETH Deposited * Current ETH/USD Price</MathFormula>
-              </li>
-              <li>
-                <strong className="font-semibold">Liquidation Threshold:</strong> This is a safety parameter set by the protocol (currently <strong className="font-semibold">{liquidationThresholdPercent}%</strong>).
-                It represents the maximum percentage of your collateral's value that can be covered by debt before liquidation risk increases significantly. It's applied as a multiplier (e.g., {liquidationThresholdPercent}% = {liquidationThresholdPercent / 100}).
-              </li>
-              <li>
-                <strong className="font-semibold">Total Debt Value (USD):</strong> This is the total amount of LMC you've borrowed. Since LMC aims for a 1 USD peg, this is simply:
-                <MathFormula>LMC Borrowed Amount</MathFormula>
-              </li>
-            </ul>
-            <p>
-              <strong className="font-semibold">Example:</strong> You deposit 1 ETH when ETH = $3000. Your Collateral Value is $3000.
-              You borrow 1000 LMC. Your Debt Value is $1000.
-            </p>
-            <MathFormula>
-              HF = ($3000 * {liquidationThresholdPercent / 100}) / $1000 = ${(3000 * (liquidationThresholdPercent / 100) / 1000).toFixed(2)}
-            </MathFormula>
-            <p>
-              Since ${(3000 * (liquidationThresholdPercent / 100) / 1000).toFixed(2)} is comfortably above {minHealthFactor.toFixed(1)}, your position is healthy!
-              If the ETH price dropped significantly, your Collateral Value would decrease, lowering your Health Factor.
-              You can improve your HF by repaying LMC or depositing more ETH.
-            </p>
-          </AccordionContent>
-        </AccordionItem>
+          <h3 className="font-semibold text-lg mt-6 mb-2">Repaying Your LMC Loan</h3>
+          <p>Ready to pay back? The `repayLmc` function takes LMC from you (you'll need to approve the contract first!), reduces your debt balance, and burns the repaid LMC to maintain the supply balance.</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.repayLmc} />
 
-        {/* === Staking === */}
-        <AccordionItem value="item-4">
-          <AccordionTrigger className="text-lg font-semibold">
-            <TrendingUp className="w-5 h-5 mr-2" /> Staking: Earning While You HODL
-          </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
-            <p>
-              Beyond borrowing, Lumina offers a way to put your ETH to work directly through the <strong className="font-semibold">StakingPool</strong> contract.
-              It's simple: you lock up some ETH in the pool, and you start earning rewards.
-            </p>
-            <p>
-              <strong className="font-semibold">How do rewards work?</strong> The pool accumulates ETH rewards over time (these could be sourced from protocol fees in the future, but for now, they might be added manually for testing).
-              The contract keeps track of a <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">rewardPerToken</code> metric, which increases as more rewards are added.
-              Your claimable reward is calculated based on your staked amount and the change in <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">rewardPerToken</code> since you last interacted (staked, unstaked, or claimed).
-            </p>
-            <p>Essentially, the more you stake and the longer you stake for, the larger your share of the distributed rewards will be.</p>
-            <ul className="list-disc list-inside space-y-1 pl-4">
-              <li><strong className="font-semibold">Stake:</strong> Deposit ETH into the pool to start earning.</li>
-              <li><strong className="font-semibold">Unstake:</strong> Withdraw your deposited ETH (you'll stop earning rewards on the withdrawn amount).</li>
-              <li><strong className="font-semibold">Claim Reward:</strong> Collect the ETH rewards you've earned so far.</li>
-            </ul>
-            <Alert variant="warning">
-               <AlertTitle>Note on APY</AlertTitle>
-               <AlertDescription>
-                 Calculating a precise Annual Percentage Yield (APY) can be complex and depends on the rate rewards are added to the pool and the total amount staked.
-                 The dashboard currently shows your raw earned rewards, not a projected APY.
-               </AlertDescription>
-            </Alert>
-          </AccordionContent>
-        </AccordionItem>
+          <h3 className="font-semibold text-lg mt-6 mb-2">Withdrawing Your ETH Collateral</h3>
+          <p>Need your ETH back? Use `withdrawCollateral`. The contract ensures you don't withdraw so much that your Health Factor drops below 1.0.</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.withdrawCollateral} />
 
-      </Accordion>
+           <h3 className="font-semibold text-lg mt-6 mb-2">Liquidation: The Safety Net</h3>
+          <p>If a user's Health Factor falls below 1.0, the `liquidate` function allows anyone (a liquidator) to repay that user's LMC debt. In return, the liquidator receives a portion of the user's ETH collateral, worth slightly more than the debt paid (the liquidation bonus). This keeps the system solvent.</p>
+          <CodeBlock language="solidity" code={CODE.collateralManager.liquidate} />
+        </SectionCard>
 
-      {/* === Glossary === */}
-      <Card className="mt-10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Library className="w-5 h-5"/> Quick Glossary</CardTitle>
-          <CardDescription>DeFi Jargon Demystified!</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[150px]">Term</TableHead>
-                <TableHead>Definition</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-semibold">Collateral</TableCell>
-                <TableCell>An asset (like ETH) you pledge to secure a loan.</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">LMC</TableCell>
-                <TableCell>LuminaCoin, the native stablecoin of the Lumina Finance platform, which you borrow and repay.</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Health Factor</TableCell>
-                <TableCell>A number representing the safety of your borrowed position against your collateral. Below {minHealthFactor.toFixed(1)} means liquidation risk.</TableCell>
-              </TableRow>
-               <TableRow>
-                <TableCell className="font-semibold">Liquidation Threshold</TableCell>
-                <TableCell>The percentage ({liquidationThresholdPercent}%) of your collateral value that determines the maximum borrowing capacity before hitting the minimum Health Factor.</TableCell>
-              </TableRow>
-               <TableRow>
-                <TableCell className="font-semibold">Staking</TableCell>
-                <TableCell>Depositing assets (ETH in this case) into a pool to earn rewards.</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Price Oracle</TableCell>
-                <TableCell>A secure source (like Chainlink) that provides real-world data (like ETH/USD price) to smart contracts.</TableCell>
-              </TableRow>
-               <TableRow>
-                <TableCell className="font-semibold">Minting / Burning</TableCell>
-                <TableCell>Creating new tokens (minting) or destroying existing tokens (burning), typically used to manage the supply of stablecoins like LMC.</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        {/* --- LuminaCoin Deep Dive --- */}
+        <SectionCard title="LuminaCoin (LMC): The Stable Heart" icon={<Coins className="w-6 h-6 text-yellow-600" />} className="border-yellow-500">
+          <p>LMC is the stablecoin you borrow and repay. It aims to hold a steady value (e.g., $1 USD). Its supply is controlled directly by borrowing and repayment.</p>
 
+          <h3 className="font-semibold text-lg mt-6 mb-2">Minting LMC</h3>
+          <p>New LMC is created (`minted`) only when someone borrows it through the `CollateralManager`. Only authorized contracts (like the `CollateralManager`) have the `MINTER_ROLE` required to call `mint`.</p>
+          <CodeBlock language="solidity" code={CODE.luminaCoin.mint} />
+
+          <h3 className="font-semibold text-lg mt-6 mb-2">Burning LMC</h3>
+          <p>When you repay your loan via the `CollateralManager`, the received LMC is destroyed (`burned`) by the manager contract calling the `burn` function. This removes it from circulation, balancing the supply.</p>
+          <CodeBlock language="solidity" code={CODE.luminaCoin.burn} />
+        </SectionCard>
+
+        {/* --- StakingPool Deep Dive --- */}
+        <SectionCard title="StakingPool: Earn While You Hodl" icon={<TrendingUp className="w-6 h-6 text-purple-500" />} className="border-purple-500">
+          <p>Want to earn yield on your ETH without borrowing? The `StakingPool` is your friend. Deposit ETH, get rewards.</p>
+
+          <h3 className="font-semibold text-lg mt-6 mb-2">Staking ETH</h3>
+          <p>Send ETH to the `stake` function. The contract records your balance and adds your ETH to the total pool, increasing your share of future rewards.</p>
+          <CodeBlock language="solidity" code={CODE.stakingPool.stake} />
+
+          <h3 className="font-semibold text-lg mt-6 mb-2">Unstaking ETH</h3>
+          <p>Use `unstake` to withdraw your deposited ETH. Before transferring your ETH back, it automatically calculates and pays out any pending rewards you've earned (`_claimRewardInternal`).</p>
+          <CodeBlock language="solidity" code={CODE.stakingPool.unstake} />
+
+          <h3 className="font-semibold text-lg mt-6 mb-2">Claiming Rewards</h3>
+          <p>Want your rewards without unstaking? Call `claimReward`. It calculates your `earned` rewards based on your stake duration and share, pays them out, and resets your internal reward counter.</p>
+          <CodeBlock language="solidity" code={CODE.stakingPool.claimReward} />
+        </SectionCard>
+
+         {/* --- Interactions --- */}
+        <SectionCard title="How It All Connects" icon={<Handshake className="w-6 h-6 text-pink-500" />} className="border-pink-500">
+          <p>
+            These contracts don't live in isolation! They collaborate:
+          </p>
+          <ul className="list-disc list-inside space-y-2 pl-4">
+            <li>User deposits ETH into `CollateralManager`.</li>
+            <li>User borrows LMC via `CollateralManager`, which triggers `LuminaCoin` to `mint` new LMC for the user.</li>
+            <li>User repays LMC to `CollateralManager`, which calls `LuminaCoin`'s `transferFrom` and then `burn` to destroy the repaid LMC.</li>
+            <li>`CollateralManager` uses a Price Feed (like Chainlink's `IPriceFeed`) to get the current ETH/USD price for Health Factor calculations.</li>
+            <li>`StakingPool` operates independently for direct ETH staking rewards.</li>
+           </ul>
+           <Alert className="mt-4 bg-indigo-50 border-indigo-200 text-indigo-800">
+            <Zap className="h-4 w-4 !text-indigo-600" />
+            <AlertTitle>Key Interaction</AlertTitle>
+            <AlertDescription>
+              The tight link between `CollateralManager` borrowing/repaying and `LuminaCoin` minting/burning is crucial for managing the LMC supply based on real collateralized debt.
+            </AlertDescription>
+          </Alert>
+        </SectionCard>
+
+        {/* --- Glossary --- */}
+        <Card className="mt-10 shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-2xl"><Library className="w-6 h-6"/> Quick Glossary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px]">Term</TableHead>
+                  <TableHead>Definition</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                 {/* (Keep the existing TableRows from previous version) */}
+                 <TableRow>
+                    <TableCell className="font-semibold">Collateral</TableCell>
+                    <TableCell>Asset (ETH) pledged to secure a loan.</TableCell>
+                 </TableRow>
+                 <TableRow>
+                    <TableCell className="font-semibold">LMC</TableCell>
+                    <TableCell>LuminaCoin stablecoin (borrow/repay).</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Health Factor</TableCell>
+                    <TableCell>Loan safety score (keep &gt; {minHealthFactor.toFixed(1)}).</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Liq. Threshold</TableCell>
+                    <TableCell>Max borrowing % ({liquidationThresholdPercent}%) vs collateral value before liquidation risk.</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">LTV Ratio</TableCell>
+                    <TableCell>Loan-to-Value: Max borrow amount relative to collateral value (e.g., 66%).</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Staking</TableCell>
+                    <TableCell>Depositing ETH in the StakingPool to earn rewards.</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Minting</TableCell>
+                    <TableCell>Creating new LMC tokens (happens during borrowing).</TableCell>
+                 </TableRow>
+                  <TableRow>
+                   <TableCell className="font-semibold">Burning</TableCell>
+                    <TableCell>Destroying LMC tokens (happens during repayment).</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Oracle</TableCell>
+                    <TableCell>Provides real-time price data (e.g., ETH/USD via Chainlink).</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell className="font-semibold">Liquidation</TableCell>
+                    <TableCell>Process of repaying an unhealthy loan using its collateral.</TableCell>
+                 </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
+
+// Simple Math Formula Component (re-added for clarity)
+const MathFormula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="my-3 p-3 bg-muted/50 rounded border font-mono text-sm overflow-x-auto shadow-inner">
+    {children}
+  </div>
+);

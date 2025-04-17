@@ -22,6 +22,12 @@ export function Header() {
             >
               Dashboard
             </Link>
+            <Link
+              href="/how-it-works" 
+              className="transition-colors hover:text-foreground/80 text-foreground/60 font-medium"
+            >
+              How It Works
+            </Link>
              {/* Example for future links 
             <Link
               href="/governance" 
