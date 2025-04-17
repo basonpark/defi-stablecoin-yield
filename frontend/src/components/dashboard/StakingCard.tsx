@@ -223,30 +223,35 @@ export function StakingCard() {
     >
       <Card className="shadow-lg">
         <CardHeader>
+          {/* Revert title color */}
           <CardTitle>ETH Staking</CardTitle>
+          {/* Revert description color */}
           <CardDescription>Stake ETH to earn ETH rewards.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Display user stats */}
           <div>
+            {/* Revert paragraph color */}
             <p className="text-sm text-muted-foreground">
               Your Staked ETH:{" "}
+              {/* Revert value color */}
               <span className="font-medium text-foreground">
                 {formattedStaked}
               </span>
             </p>
+            {/* Revert paragraph color */}
             <p className="text-sm text-muted-foreground">
               Earned Rewards (ETH):{" "}
+              {/* Revert value color */}
               <span className="font-medium text-foreground">
                 {formattedRewards}
               </span>
             </p>
-            {/* APY calculation is complex, requires historical data or contract view function */}
-            {/* <p className="text-sm text-muted-foreground">Estimated APY: <span className="font-medium text-foreground">{estimatedAPY}</span></p> */}
           </div>
 
           {/* Stake Section */}
           <div className="space-y-2">
+            {/* Revert label color */}
             <label htmlFor="stake-amount" className="text-sm font-medium">
               Stake ETH
             </label>
@@ -270,6 +275,7 @@ export function StakingCard() {
 
           {/* Unstake Section */}
           <div className="space-y-2">
+            {/* Revert label color */}
             <label htmlFor="unstake-amount" className="text-sm font-medium">
               Unstake ETH
             </label>

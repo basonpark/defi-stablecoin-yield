@@ -227,12 +227,15 @@ export function DepositBorrowCard() {
     >
       <Card className="shadow-lg"> { /* Add shadow */}
         <CardHeader>
+          {/* Revert title color */}
           <CardTitle>Deposit & Borrow</CardTitle>
+          {/* Revert description color */}
           <CardDescription>Deposit ETH as collateral to borrow LuminaCoin (LMC).</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Deposit Section */}
           <div className="space-y-2">
+            {/* Revert label color */}
             <label htmlFor="deposit-amount" className="text-sm font-medium">Deposit ETH</label>
             <div className="flex gap-2">
               <Input
@@ -255,6 +258,7 @@ export function DepositBorrowCard() {
 
           {/* Borrow Section */}
           <div className="space-y-2">
+            {/* Revert label color */}
             <label htmlFor="borrow-amount" className="text-sm font-medium">Borrow LMC</label>
             <div className="flex gap-2">
               <Input
@@ -276,6 +280,7 @@ export function DepositBorrowCard() {
 
           {/* Repay Section */}
           <div className="space-y-2">
+            {/* Revert label color */}
             <label htmlFor="repay-amount" className="text-sm font-medium">Repay LMC</label>
             <div className="flex gap-2">
               <Input
@@ -306,7 +311,8 @@ export function DepositBorrowCard() {
           </div>
 
           {/* Withdraw Section */}
-          <div className="space-y-2">
+          <div className="space-y-2 pt-4 border-t">
+            {/* Revert label color */}
             <label htmlFor="withdraw-amount" className="text-sm font-medium">Withdraw ETH</label>
             <div className="flex gap-2">
               <Input

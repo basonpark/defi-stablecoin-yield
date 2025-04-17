@@ -33,20 +33,24 @@ export function HowItWorksContent() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-3xl font-bold mb-6 text-center flex items-center justify-center gap-3">
+      {/* Change color to slate-100 */}
+      <h2 className="text-3xl font-bold mb-6 text-center flex items-center justify-center gap-3 text-slate-100">
         <Lightbulb className="w-7 h-7" /> How Lumina Works
       </h2>
-      <p className="text-md text-muted-foreground mb-8 text-center">
+      {/* Change color to slate-300 */}
+      <p className="text-md text-slate-300 mb-8 text-center">
         A quick dive into the mechanics behind the magic.
       </p>
 
       <Accordion type="single" collapsible className="w-full space-y-4 mb-10">
         {/* === Overview === */}
         <AccordionItem value="item-1">
-          <AccordionTrigger className="text-lg font-semibold">
+          {/* Change trigger color to slate-200 */}
+          <AccordionTrigger className="text-lg font-semibold text-slate-200 hover:text-slate-100">
             <Library className="w-5 h-5 mr-2" /> What's the Big Idea?
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
+          {/* Change content color to slate-300 */}
+          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
               Lumina Finance lets you deposit ETH as collateral to borrow our stablecoin, LuminaCoin (LMC).
               You can also stake ETH directly to earn rewards.
@@ -61,43 +65,48 @@ export function HowItWorksContent() {
 
         {/* === Calculations: Health Factor === */}
         <AccordionItem value="item-3">
-          <AccordionTrigger className="text-lg font-semibold">
+          {/* Change trigger color to slate-200 */}
+          <AccordionTrigger className="text-lg font-semibold text-slate-200 hover:text-slate-100">
             <Calculator className="w-5 h-5 mr-2" /> The Health Factor
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
+          {/* Change content color to slate-300 */}
+          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
-              This number shows the safety of your loan. Keep it above <strong className="font-semibold">{minHealthFactor.toFixed(1)}</strong> to avoid liquidation risk!
+              This number shows the safety of your loan. Keep it above <strong className="font-semibold text-slate-100">{minHealthFactor.toFixed(1)}</strong> to avoid liquidation risk!
             </p>
             <MathFormula>
               HF = (Collateral Value * Liquidation Threshold) / Debt Value
             </MathFormula>
+            {/* Ensure list items inherit slate-300 */}
             <ul className="list-disc list-inside space-y-1 pl-4 text-sm">
-              <li><strong className="font-semibold">Collateral Value (USD) =</strong> ETH Deposited * ETH Price</li>
-              <li><strong className="font-semibold">Liquidation Threshold =</strong> {liquidationThresholdPercent}% (or {liquidationThresholdPercent / 100})</li>
-              <li><strong className="font-semibold">Debt Value (USD) =</strong> LMC Borrowed</li>
+              <li><strong className="font-semibold text-slate-100">Collateral Value (USD) =</strong> ETH Deposited * ETH Price</li>
+              <li><strong className="font-semibold text-slate-100">Liquidation Threshold =</strong> {liquidationThresholdPercent}% (or {liquidationThresholdPercent / 100})</li>
+              <li><strong className="font-semibold text-slate-100">Debt Value (USD) =</strong> LMC Borrowed</li>
             </ul>
-             <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 mt-4">
-              <ShieldCheck className="h-4 w-4 !text-blue-600" />
-              <AlertTitle>Stay Healthy!</AlertTitle>
-              <AlertDescription>
-                If ETH price drops, your HF falls. Repay LMC or add ETH to boost it.
-              </AlertDescription>
+             <Alert variant="default" className="bg-blue-900/30 border-blue-700 text-slate-300 mt-4"> {/* Adjusted Alert styling */}
+               <ShieldCheck className="h-4 w-4 text-blue-400" /> {/* Adjusted icon color */}
+               <AlertTitle className="text-slate-100">Stay Healthy!</AlertTitle> {/* Adjusted title color */}
+               <AlertDescription>
+                 If ETH price drops, your HF falls. Repay LMC or add ETH to boost it.
+               </AlertDescription>
             </Alert>
           </AccordionContent>
         </AccordionItem>
 
         {/* === Staking === */}
         <AccordionItem value="item-4">
-          <AccordionTrigger className="text-lg font-semibold">
+          {/* Change trigger color to slate-200 */}
+          <AccordionTrigger className="text-lg font-semibold text-slate-200 hover:text-slate-100">
             <TrendingUp className="w-5 h-5 mr-2" /> Staking Rewards
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 pl-8 text-base">
+          {/* Change content color to slate-300 */}
+          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
-              Deposit ETH into the <strong className="font-semibold">StakingPool</strong> contract to earn passive rewards.
+              Deposit ETH into the <strong className="font-semibold text-slate-100">StakingPool</strong> contract to earn passive rewards.
               Your reward share depends on how much you stake and for how long, relative to the total pool.
             </p>
-             <Alert variant="default" className="mt-4">
-               <AlertTitle>Note on APY</AlertTitle>
+             <Alert variant="default" className="bg-muted/50 border-slate-700 text-slate-300 mt-4"> {/* Adjusted Alert styling */}
+               <AlertTitle className="text-slate-100">Note on APY</AlertTitle> {/* Adjusted title color */}
                <AlertDescription>
                  The dashboard shows raw earned rewards, not a projected APY, as it depends on variable factors.
                </AlertDescription>

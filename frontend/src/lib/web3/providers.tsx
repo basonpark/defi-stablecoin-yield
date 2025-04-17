@@ -7,7 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // Imp
 import {
   mainnet,
   sepolia,
-  goerli,
+  polygon, // Add polygon
+  polygonMumbai, // Add polygonMumbai
   hardhat, // For local testing
 } from "wagmi/chains";
 
@@ -23,7 +24,8 @@ if (!projectId) {
 const supportedChains = [
   mainnet,
   sepolia,
-  goerli,
+  polygon,
+  polygonMumbai,
   // Only include hardhat in development
   ...(process.env.NODE_ENV === "development" ? [hardhat] : []),
 ] as const; // Use 'as const' for type safety

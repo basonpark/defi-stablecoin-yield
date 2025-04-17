@@ -136,7 +136,7 @@ export function UserStats() {
               <div>{formatValue(debtBalance as bigint)} LMC</div>
 
               <div className="font-medium">Health Factor:</div>
-              {/* HF is scaled by 1e18 */}
+              {/* HF color remains dynamic */}
               <div className={getHealthFactorColor(healthFactor as bigint)}>
                 {formatHealthFactor(healthFactor as bigint)}
               </div>
