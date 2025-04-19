@@ -47,7 +47,7 @@ export function HowItWorksContent() {
         <AccordionItem value="item-1">
           {/* Change trigger color to slate-200 */}
           <AccordionTrigger className="text-lg font-semibold text-slate-200 hover:text-slate-100">
-            <Library className="w-5 h-5 mr-2" /> What's the Big Idea?
+            <Library className="w-5 h-5 mr-2" /> What&apos;s the Big Idea?
           </AccordionTrigger>
           {/* Change content color to slate-300 */}
           <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
@@ -56,7 +56,7 @@ export function HowItWorksContent() {
               You can also stake ETH directly to earn rewards.
             </p>
             <p>
-              It's powered by transparent smart contracts: <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">LuminaCoin</code> (the token),
+              It&apos;s powered by transparent smart contracts: <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">LuminaCoin</code> (the token),
               <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">CollateralManager</code> (handles borrowing/lending),
               and <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">StakingPool</code> (manages staking & rewards).
             </p>

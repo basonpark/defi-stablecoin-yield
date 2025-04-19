@@ -208,7 +208,7 @@ export default function HowItWorksPage() {
           <Feather className="w-8 h-8" /> The Lumina Lowdown 
         </h1>
         <p className="text-lg text-muted-foreground mb-12 text-center">
-          Curious how Lumina turns your crypto into more crypto? Let's pull back the curtain and explore the smart contract magic!
+          Curious how Lumina turns your crypto into more crypto? Let&apos;s pull back the curtain and explore the smart contract magic!
           Think of it as a backstage tour of decentralized finance.
         </p>
 
@@ -228,7 +228,7 @@ export default function HowItWorksPage() {
             Three main contracts run the show:
           </p>
           <ul className="list-disc list-inside space-y-2 pl-4">
-            <li><strong className="font-semibold">LuminaCoin (LMC):</strong> Our very own stablecoin, pegged to USD. It's minted when you borrow and burned when you repay.</li>
+            <li><strong className="font-semibold">LuminaCoin (LMC):</strong> Our very own stablecoin, pegged to USD. It&apos;s minted when you borrow and burned when you repay.</li>
             <li><strong className="font-semibold">CollateralManager:</strong> The central hub! Handles your ETH deposits, LMC borrowing/repaying, and keeps an eye on loan health (the famous Health Factor!).</li>
             <li><strong className="font-semibold">StakingPool:</strong> Simple and sweet. Stake ETH here, earn more ETH as rewards based on pool performance.</li>
           </ul>
@@ -237,18 +237,18 @@ export default function HowItWorksPage() {
         {/* --- CollateralManager Deep Dive --- */}
         <SectionCard title="CollateralManager: The Engine Room" icon={<Settings className="w-6 h-6 text-gray-600" />} className="border-green-500">
           <p>
-            This contract is where most of the borrowing action happens. Let's see how it works.
+            This contract is where most of the borrowing action happens. Let&apos;s see how it works.
           </p>
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Depositing ETH (Your Collateral)</h3>
-          <p>To borrow, you first need to provide collateral. Sending ETH to the contract's `deposit` function locks it up as backing for your future loan.</p>
+          <p>To borrow, you first need to provide collateral. Sending ETH to the contract&apos;s `deposit` function locks it up as backing for your future loan.</p>
           <CodeBlock language="solidity" code={CODE.collateralManager.deposit} />
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Borrowing LuminaCoin (LMC)</h3>
-          <p>Once you have collateral, you can borrow LMC using `borrowLmc`. The contract checks two crucial things: your Loan-to-Value (LTV) ratio (can't borrow more than ~66% of your collateral's value) and your Health Factor (must be above 1.0).</p>
+          <p>Once you have collateral, you can borrow LMC using `borrowLmc`. The contract checks two crucial things: your Loan-to-Value (LTV) ratio (can&apos;t borrow more than ~66% of your collateral&apos;s value) and your Health Factor (must be above 1.0).</p>
           <CodeBlock language="solidity" code={CODE.collateralManager.borrowLmc} />
 
-          <h3 className="font-semibold text-lg mt-6 mb-2">The Health Factor: Your Loan's Lifeline</h3>
+          <h3 className="font-semibold text-lg mt-6 mb-2">The Health Factor: Your Loan&apos;s Lifeline</h3>
           <p>Think of this as a safety score for your loan. It compares the value of your collateral (adjusted by the liquidation threshold) to the value of your debt. </p>
           <MathFormula>
             HF = (Collateral Value * Liquidation Threshold %) / Debt Value
@@ -259,20 +259,20 @@ export default function HowItWorksPage() {
             <ShieldCheck className="h-4 w-4" />
             <AlertTitle>Liquidation Risk!</AlertTitle>
             <AlertDescription>
-              If your Health Factor drops below {minHealthFactor.toFixed(1)}, anyone can call the `liquidate` function to repay your debt in exchange for your collateral (plus a bonus!). Don't let this happen!
+              If your Health Factor drops below {minHealthFactor.toFixed(1)}, anyone can call the `liquidate` function to repay your debt in exchange for your collateral (plus a bonus!). Don&apos;t let this happen!
             </AlertDescription>
           </Alert>
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Repaying Your LMC Loan</h3>
-          <p>Ready to pay back? The `repayLmc` function takes LMC from you (you'll need to approve the contract first!), reduces your debt balance, and burns the repaid LMC to maintain the supply balance.</p>
+          <p>Ready to pay back? The `repayLmc` function takes LMC from you (you&apos;ll need to approve the contract first!), reduces your debt balance, and burns the repaid LMC to maintain the supply balance.</p>
           <CodeBlock language="solidity" code={CODE.collateralManager.repayLmc} />
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Withdrawing Your ETH Collateral</h3>
-          <p>Need your ETH back? Use `withdrawCollateral`. The contract ensures you don't withdraw so much that your Health Factor drops below 1.0.</p>
+          <p>Need your ETH back? Use `withdrawCollateral`. The contract ensures you don&apos;t withdraw so much that your Health Factor drops below 1.0.</p>
           <CodeBlock language="solidity" code={CODE.collateralManager.withdrawCollateral} />
 
            <h3 className="font-semibold text-lg mt-6 mb-2">Liquidation: The Safety Net</h3>
-          <p>If a user's Health Factor falls below 1.0, the `liquidate` function allows anyone (a liquidator) to repay that user's LMC debt. In return, the liquidator receives a portion of the user's ETH collateral, worth slightly more than the debt paid (the liquidation bonus). This keeps the system solvent.</p>
+          <p>If a user&apos;s Health Factor falls below 1.0, the `liquidate` function allows anyone (a liquidator) to repay that user&apos;s LMC debt. In return, the liquidator receives a portion of the user&apos;s ETH collateral, worth slightly more than the debt paid (the liquidation bonus). This keeps the system solvent.</p>
           <CodeBlock language="solidity" code={CODE.collateralManager.liquidate} />
         </SectionCard>
 
@@ -298,7 +298,7 @@ export default function HowItWorksPage() {
           <CodeBlock language="solidity" code={CODE.stakingPool.stake} />
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Unstaking ETH</h3>
-          <p>Use `unstake` to withdraw your deposited ETH. Before transferring your ETH back, it automatically calculates and pays out any pending rewards you've earned (`_claimRewardInternal`).</p>
+          <p>Use `unstake` to withdraw your deposited ETH. Before transferring your ETH back, it automatically calculates and pays out any pending rewards you&apos;ve earned (`_claimRewardInternal`).</p>
           <CodeBlock language="solidity" code={CODE.stakingPool.unstake} />
 
           <h3 className="font-semibold text-lg mt-6 mb-2">Claiming Rewards</h3>
@@ -309,13 +309,13 @@ export default function HowItWorksPage() {
          {/* --- Interactions --- */}
         <SectionCard title="How It All Connects" icon={<Handshake className="w-6 h-6 text-pink-500" />} className="border-pink-500">
           <p>
-            These contracts don't live in isolation! They collaborate:
+            These contracts don&apos;t live in isolation! They collaborate:
           </p>
           <ul className="list-disc list-inside space-y-2 pl-4">
             <li>User deposits ETH into `CollateralManager`.</li>
             <li>User borrows LMC via `CollateralManager`, which triggers `LuminaCoin` to `mint` new LMC for the user.</li>
-            <li>User repays LMC to `CollateralManager`, which calls `LuminaCoin`'s `transferFrom` and then `burn` to destroy the repaid LMC.</li>
-            <li>`CollateralManager` uses a Price Feed (like Chainlink's `IPriceFeed`) to get the current ETH/USD price for Health Factor calculations.</li>
+            <li>User repays LMC to `CollateralManager`, which calls `LuminaCoin`&apos;s `transferFrom` and then `burn` to destroy the repaid LMC.</li>
+            <li>`CollateralManager` uses a Price Feed (like Chainlink&apos;s `IPriceFeed`) to get the current ETH/USD price for Health Factor calculations.</li>
             <li>`StakingPool` operates independently for direct ETH staking rewards.</li>
            </ul>
            <Alert className="mt-4 bg-indigo-50 border-indigo-200 text-indigo-800">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   useAccount,
   useWriteContract,
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { getContractConfig } from "@/lib/web3/contracts";
 import { parseEther, formatEther } from "viem";
 import { toast } from "sonner";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 // TODO: Import contract ABI and address for StakingPool -> Done via getContractConfig
 
@@ -150,11 +150,11 @@ export function StakingCard() {
   };
 
   // --- Refetch data on successful transaction ---
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     refetchStakedBalance();
     refetchEarnedRewards();
     // Optionally refetch UserStats data if a central state/context is used
-  };
+  }, [refetchStakedBalance, refetchEarnedRewards]);
 
   // --- Transaction Feedback Effects ---
   useEffect(() => {
@@ -168,7 +168,7 @@ export function StakingCard() {
     }
     if (stakeError)
       toast.error(`Stake failed: ${stakeError.message}`, { id: "stake-tx" });
-  }, [isStaking, isConfirmingStake, isConfirmedStake, stakeError]);
+  }, [isStaking, isConfirmingStake, isConfirmedStake, stakeError, refreshData]);
 
   useEffect(() => {
     if (isUnstaking)
@@ -184,7 +184,7 @@ export function StakingCard() {
       toast.error(`Unstake failed: ${unstakeError.message}`, {
         id: "unstake-tx",
       });
-  }, [isUnstaking, isConfirmingUnstake, isConfirmedUnstake, unstakeError]);
+  }, [isUnstaking, isConfirmingUnstake, isConfirmedUnstake, unstakeError, refreshData]);
 
   useEffect(() => {
     if (isClaiming) toast.loading("Requesting claim...", { id: "claim-tx" });
@@ -196,7 +196,7 @@ export function StakingCard() {
     }
     if (claimError)
       toast.error(`Claim failed: ${claimError.message}`, { id: "claim-tx" });
-  }, [isClaiming, isConfirmingClaim, isConfirmedClaim, claimError]);
+  }, [isClaiming, isConfirmingClaim, isConfirmedClaim, claimError, refreshData]);
 
   // Aggregate loading state
   const isProcessing =
@@ -233,16 +233,14 @@ export function StakingCard() {
           <div>
             {/* Revert paragraph color */}
             <p className="text-sm text-muted-foreground">
-              Your Staked ETH:{" "}
-              {/* Revert value color */}
+              Your Staked ETH: {/* Revert value color */}
               <span className="font-medium text-foreground">
                 {formattedStaked}
               </span>
             </p>
             {/* Revert paragraph color */}
             <p className="text-sm text-muted-foreground">
-              Earned Rewards (ETH):{" "}
-              {/* Revert value color */}
+              Earned Rewards (ETH): {/* Revert value color */}
               <span className="font-medium text-foreground">
                 {formattedRewards}
               </span>
@@ -293,7 +291,9 @@ export function StakingCard() {
                 disabled={isProcessing || !isConnected || !unstakeAmount}
                 variant="outline"
               >
-                {isUnstaking || isConfirmingUnstake ? "Unstaking..." : "Unstake"}
+                {isUnstaking || isConfirmingUnstake
+                  ? "Unstaking..."
+                  : "Unstake"}
               </Button>
             </div>
           </div>
