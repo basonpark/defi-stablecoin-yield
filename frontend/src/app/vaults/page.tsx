@@ -158,17 +158,17 @@ export default function VaultsPage() {
                 <p className="flex items-start gap-2">
                   <LogIn className="h-4 w-4 text-slate-400 mt-1 flex-shrink-0" />
                   <span>
-                    Use the '
+                    Use the &#39;
                     <strong className="font-semibold text-white">
                       Deposit
                     </strong>
-                    ' button to add funds and the{" "}
+                    &#39; button to add funds and the{" "}
                     <LogOut className="inline-block h-4 w-4 text-slate-400 mx-1" />{" "}
-                    '
+                    &#39;
                     <strong className="font-semibold text-white">
                       Withdraw
                     </strong>
-                    ' button to retrieve your assets and accumulated yield
+                    &#39; button to retrieve your assets and accumulated yield
                     (subject to strategy conditions and potential fees).
                   </span>
                 </p>

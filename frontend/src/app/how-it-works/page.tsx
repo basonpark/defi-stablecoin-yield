@@ -256,7 +256,7 @@ const HowItWorksPage: React.FC = () => {
             <p className="text-lg text-slate-400">
               Here are the key concepts behind Lumina Finance
               <br />
-              The implementation is similar to MakerDao's lending platform
+              The implementation is similar to MakerDao&apos;s lending platform
             </p>
           </header>
 

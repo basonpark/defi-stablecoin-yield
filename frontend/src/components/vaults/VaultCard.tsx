@@ -114,10 +114,8 @@ export function VaultCard({ vault }: VaultCardProps) {
           "h-full", // Ensure card takes full height of the motion div
           // Updated Background Gradient
           "bg-gradient-to-br from-slate-600/70 via-neutral-950/80 to-slate-800",
-          // Shinier Border
           "border border-white/15 backdrop-blur-lg",
-          "flex flex-col transition-shadow duration-300", // Keep transition for shadow if needed, removed other transitions possibly conflicting with motion
-          // Updated Shadow (Applied directly, hover shadow managed by motion or can be added here too if desired)
+          "flex flex-col transition-shadow duration-300", 
           "shadow-[0_10px_25px_-8px_rgba(0,0,0,0.5)] dark:shadow-[0_10px_30px_-10px_rgba(0,220,255,0.30)]",
           // REMOVED specific hover classes like hover:-translate-y-X as motion handles lift
           // You could add hover:shadow-cyan-300/50 here if you want shadow change via Tailwind on hover

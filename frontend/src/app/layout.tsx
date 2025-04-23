@@ -5,7 +5,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { cn } from "@/lib/utils";
 import { Web3Providers } from "@/lib/web3/providers";
 import { Footer } from "@/components/layout/Footer";
-import "prismjs/themes/prism.css/";
+import "prismjs/themes/prism.css";
 
 import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import { Toaster } from "@/components/ui/sonner";
