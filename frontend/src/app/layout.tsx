@@ -10,7 +10,6 @@ import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import { Toaster } from "@/components/ui/sonner";
 import { NavBar } from "@/components/ui/tubelight-navbar";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { LampContainer } from "@/components/ui/lamp";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -41,9 +40,7 @@ export default function RootLayout({
               <ConnectButton />
             </div>
             <NavBar items={navItems} className="pt-4 sm:pt-6" />
-            <LampContainer className="pt-20">
-              <main className="flex-1 pb-20">{children}</main>
-            </LampContainer>
+            <main className="flex-1 pb-20">{children}</main>
             <Footer />
           </div>
           <Toaster />
