@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 
 const navItems = [
   { name: "Home", url: "/", iconName: "Home" },
+  { name: "Vaults", url: "/vaults", iconName: "Layers" },
   { name: "Dashboard", url: "/dashboard", iconName: "LayoutDashboard" },
   { name: "How It Works", url: "/how-it-works", iconName: "Info" },
 ];
@@ -40,7 +41,7 @@ export default function RootLayout({
               <ConnectButton />
             </div>
             <NavBar items={navItems} className="pt-4 sm:pt-6" />
-            <main className="flex-1 pb-20">{children}</main>
+            <main className="flex-1">{children}</main>
             <Footer />
           </div>
           <Toaster />
