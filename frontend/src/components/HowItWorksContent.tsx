@@ -38,7 +38,7 @@ import { motion } from "framer-motion";
 
 // Function to render math formulas (simple version)
 const MathFormula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="my-3 p-3 bg-muted rounded font-mono text-sm overflow-x-auto">
+  <div className="my-3 p-3 border bg-transparent rounded font-mono text-sm overflow-x-auto">
     {children}
   </div>
 );
@@ -72,23 +72,23 @@ export function HowItWorksContent() {
             <Library className="w-5 h-5 mr-2" /> What&apos;s the Big Idea?
           </AccordionTrigger>
           {/* Change content color to slate-300 */}
-          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
-            <p>
+          <AccordionContent className="bg-transparent space-y-3 pl-8 text-base text-zinc-400">
+            <p className="bg-transparent">
               Lumina Finance lets you deposit ETH as collateral to borrow our
               stablecoin, LuminaCoin (LMC). You can also stake ETH directly to
               earn rewards.
             </p>
-            <p>
+            <p className="bg-transparent">
               It&apos;s powered by transparent smart contracts:{" "}
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+              <code className="relative rounded border bg-transparent px-[0.3rem] py-[0.2rem] font-mono text-sm">
                 LuminaCoin
               </code>{" "}
               (the token),
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+              <code className="relative rounded border bg-transparent px-[0.3rem] py-[0.2rem] font-mono text-sm">
                 CollateralManager
               </code>{" "}
               (handles borrowing/lending), and{" "}
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+              <code className="relative rounded border bg-transparent px-[0.3rem] py-[0.2rem] font-mono text-sm">
                 StakingPool
               </code>{" "}
               (manages staking & rewards).
@@ -103,8 +103,8 @@ export function HowItWorksContent() {
             <Calculator className="w-5 h-5 mr-2" /> The Health Factor
           </AccordionTrigger>
           {/* Change content color to slate-300 */}
-          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
-            <p>
+          <AccordionContent className="bg-transparent space-y-3 pl-8 text-base text-zinc-400">
+            <p className="bg-transparent">
               This number shows the safety of your loan. Keep it above{" "}
               <strong className="font-semibold text-slate-100">
                 {minHealthFactor.toFixed(1)}
@@ -163,8 +163,8 @@ export function HowItWorksContent() {
             <TrendingUp className="w-5 h-5 mr-2" /> Staking Rewards
           </AccordionTrigger>
           {/* Change content color to slate-300 */}
-          <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
-            <p>
+          <AccordionContent className="bg-transparent space-y-3 pl-8 text-base text-zinc-400">
+            <p className="bg-transparent">
               Deposit ETH into the{" "}
               <strong className="font-semibold text-slate-100">
                 StakingPool
@@ -174,7 +174,7 @@ export function HowItWorksContent() {
             </p>
             <Alert
               variant="default"
-              className="bg-muted/50 border-slate-700 text-slate-300 mt-4"
+              className="bg-trans  border-slate-700 text-slate-300 mt-4"
             >
               {" "}
               {/* Adjusted Alert styling */}
@@ -192,56 +192,68 @@ export function HowItWorksContent() {
       </Accordion>
 
       {/* === Glossary === */}
-      <Card className="mt-10 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Library className="w-5 h-5" /> Quick Glossary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[150px]">Term</TableHead>
-                <TableHead>Definition</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-semibold">Collateral</TableCell>
-                <TableCell>Asset (ETH) pledged to secure a loan.</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">LMC</TableCell>
-                <TableCell>LuminaCoin stablecoin (borrow/repay).</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Health Factor</TableCell>
-                <TableCell>
-                  Loan safety score (keep &gt; {minHealthFactor.toFixed(1)}).
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Liq. Threshold</TableCell>
-                <TableCell>
-                  Max borrowing % ({liquidationThresholdPercent}%) vs collateral
-                  value.
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Staking</TableCell>
-                <TableCell>Depositing ETH to earn rewards.</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-semibold">Oracle</TableCell>
-                <TableCell>
-                  Provides real-time price data (e.g., ETH/USD).
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="mt-12 p-6 rounded-lg bg-slate-800 shadow-lg">
+        <h3 className="text-xl font-semibold mb-4 text-white">
+          Quick Glossary
+        </h3>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[150px] text-zinc-300">Term</TableHead>
+              <TableHead className="text-zinc-300">Definition</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">
+                Collateral
+              </TableCell>
+              <TableCell className="text-zinc-400">
+                Asset (ETH) pledged to secure a loan.
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">LMC</TableCell>
+              <TableCell className="text-zinc-400">
+                LuminaCoin stablecoin (borrow/repay).
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">
+                Health Factor
+              </TableCell>
+              <TableCell className="text-zinc-400">
+                Loan safety score (keep &gt; {minHealthFactor.toFixed(1)}).
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">
+                Liq. Threshold
+              </TableCell>
+              <TableCell className="text-zinc-400">
+                Max borrowing % ({liquidationThresholdPercent}%) vs collateral
+                value.
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">
+                Staking
+              </TableCell>
+              <TableCell className="text-zinc-400">
+                Depositing ETH to earn rewards.
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-semibold text-zinc-300">
+                Oracle
+              </TableCell>
+              <TableCell className="text-zinc-400">
+                Provides real-time price data (e.g., ETH/USD).
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </motion.div>
   );
 }

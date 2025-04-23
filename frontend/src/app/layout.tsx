@@ -5,7 +5,8 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { cn } from "@/lib/utils";
 import { Web3Providers } from "@/lib/web3/providers";
 import { Footer } from "@/components/layout/Footer";
-import "prismjs/themes/prism.css";
+import "prismjs/themes/prism.css/";
+
 import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import { Toaster } from "@/components/ui/sonner";
 import { NavBar } from "@/components/ui/tubelight-navbar";
@@ -23,7 +24,6 @@ export const metadata: Metadata = {
 const navItems = [
   { name: "Home", url: "/", iconName: "Home" },
   { name: "Vaults", url: "/vaults", iconName: "Layers" },
-  { name: "Dashboard", url: "/dashboard", iconName: "LayoutDashboard" },
   { name: "How It Works", url: "/how-it-works", iconName: "Info" },
 ];
 
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={`${fontSans.className} bg-background text-foreground`}>
         <Web3Providers>
           <div className="relative flex min-h-screen flex-col">
-            <div className="absolute top-4 right-4 z-50">
+            <div className="absolute top-6 right-10 z-50">
               <ConnectButton />
             </div>
             <NavBar items={navItems} className="pt-4 sm:pt-6" />

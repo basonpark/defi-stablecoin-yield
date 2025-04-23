@@ -2,20 +2,38 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAccount } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 import { useReadContract } from "wagmi";
 import { formatEther, formatUnits } from "viem";
-import { getContractConfig, SEPOLIA_CHAIN_ID } from "@/lib/web3/contracts";
-import { motion } from "framer-motion"; // Import motion
-import { cn } from "@/lib/utils"; // Import cn
+import {
+  getContractConfig,
+  SEPOLIA_CHAIN_ID,
+  LUMINA_COIN_ADDRESS_SEPOLIA,
+  COLLATERAL_MANAGER_ADDRESS_SEPOLIA,
+} from "@/lib/web3/contracts";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { sepolia } from 'wagmi/chains';
+
+const formatAddress = (addr: string | undefined) => {
+  if (!addr) return "N/A";
+  return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+};
 
 export function UserStats() {
   const { address: userAddress, chainId, isConnected } = useAccount();
+  const { data: balanceData, isLoading: isLoadingBalance } = useBalance({
+    address: userAddress,
+    query: {
+      enabled: isConnected && !!userAddress,
+    },
+  });
 
-  // Get contract configuration based on the connected chain
   const contracts = getContractConfig(chainId);
+  const luminaCoinAddress = contracts?.luminaCoin.address ?? LUMINA_COIN_ADDRESS_SEPOLIA;
+  const collateralManagerAddress =
+    contracts?.collateralManager.address ?? COLLATERAL_MANAGER_ADDRESS_SEPOLIA;
 
-  // --- Read CollateralManager Data ---
   const {
     data: collateralBalance,
     isLoading: isLoadingCollateral,
@@ -23,9 +41,9 @@ export function UserStats() {
   } = useReadContract({
     ...contracts?.collateralManager,
     functionName: "collateralBalances",
-    args: [userAddress!], // Fetch only if address exists
+    args: [userAddress!],
     query: {
-      enabled: isConnected && !!userAddress && !!contracts, // Only run query when connected and address/config available
+      enabled: isConnected && !!userAddress && !!contracts,
     },
   });
 
@@ -68,7 +86,6 @@ export function UserStats() {
     },
   });
 
-  // --- Read StakingPool Data ---
   const {
     data: stakedBalance,
     isLoading: isLoadingStaked,
@@ -95,8 +112,8 @@ export function UserStats() {
     },
   });
 
-  // --- Aggregate Loading/Error States ---
   const isLoading =
+    isLoadingBalance ||
     isLoadingCollateral ||
     isLoadingDebt ||
     isLoadingCollateralValue ||
@@ -111,7 +128,6 @@ export function UserStats() {
     errorStaked ||
     errorRewards;
 
-  // --- Helper function for formatting BigInt to string with fallback ---
   const formatValue = (
     value: bigint | undefined | null,
     decimals = 18,
@@ -121,7 +137,6 @@ export function UserStats() {
     if (value === undefined || value === null) return "N/A";
     try {
       const formatted = formatUnits(value, decimals);
-      // Show more precision for small numbers, less for large
       const num = parseFloat(formatted);
       const effectivePrecision = num < 1 ? 6 : precision;
       return `${num.toFixed(effectivePrecision)}${suffix}`;
@@ -131,21 +146,18 @@ export function UserStats() {
     }
   };
 
-  // --- Health Factor Formatting (special case, scaled by 1e18) ---
   const formatHealthFactor = (hf: bigint | undefined | null) => {
     if (hf === undefined || hf === null) return "N/A";
-    if (hf === BigInt(0) && debtBalance === BigInt(0)) return "∞"; // Handle zero debt case
-    return formatValue(hf, 18, "", 2); // HF is scaled by 1e18, show 2 decimal places
+    if (debtBalance !== undefined && debtBalance === BigInt(0)) return "∞";
+    return formatValue(hf, 18, "", 2);
   };
 
-  const getHealthFactorColor = (hf: bigint | undefined | null) => {
-    if (!isConnected || isLoading || hf === undefined || hf === null)
-      return "text-muted-foreground";
-    const hfValue = Number(hf) / 1e18; // Adjust divisor if needed
-    if (hfValue < 1.2) return "text-destructive";
-    if (hfValue < 1.8) return "text-yellow-500";
-    return "text-green-500";
-  };
+  // --- Debugging Logs ---
+  console.log("UserStats Render - isConnected:", isConnected);
+  console.log("UserStats Render - isLoading:", isLoading);
+  console.log("UserStats Render - healthFactor Raw:", healthFactor);
+  console.log("UserStats Render - debtBalance Raw:", debtBalance);
+  console.log("UserStats Render - Formatted HF:", formatHealthFactor(healthFactor as bigint));
 
   return (
     <motion.div
@@ -158,21 +170,15 @@ export function UserStats() {
       }}
     >
       <CardHeader className="pb-4">
-        {" "}
-        {/* Add bottom padding */}
         <CardTitle className="text-white">Your Stats</CardTitle>
       </CardHeader>
       <CardContent>
         {!isConnected ? (
           <p className="text-zinc-400">
-            {" "}
-            {/* Darker zinc */}
             Connect your wallet to view your stats.
           </p>
-        ) : !contracts ? (
+        ) : !contracts && chainId !== SEPOLIA_CHAIN_ID ? (
           <p className="text-red-400">
-            {" "}
-            {/* Slightly lighter red for dark bg */}
             Unsupported network. Please switch to Sepolia.
           </p>
         ) : isLoading ? (
@@ -182,44 +188,91 @@ export function UserStats() {
             Error fetching stats. Please try again.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="font-medium text-zinc-400">
-              Total Collateral (ETH):
-            </div>{" "}
-            {/* Darker zinc label */}
-            <div className="text-zinc-300">
-              {formatValue(collateralBalance as bigint)} ETH
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">Network:</span>
+              <span className="text-zinc-300">
+                {chainId === sepolia.id ? sepolia.name : `Unsupported (ID: ${chainId})`}
+              </span>
             </div>
-            <div className="font-medium text-zinc-400">
-              Collateral Value (USD):
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">Wallet:</span>
+              <span className="text-zinc-300" title={userAddress}>
+                {formatAddress(userAddress)}
+              </span>
             </div>
-            <div className="text-zinc-300">
-              $ {formatValue(collateralValueUsd as bigint)}
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">ETH Balance:</span>
+              <span className="text-zinc-300">
+                {balanceData
+                  ? `${parseFloat(formatEther(balanceData.value)).toFixed(4)} ETH`
+                  : "N/A"}
+              </span>
             </div>
-            {/* Ensure comment is correctly terminated */}
-            <div className="font-medium text-zinc-400">Borrowed (LMC):</div>
-            <div className="text-zinc-300">
-              {formatValue(debtBalance as bigint)} LMC
+
+            <hr className="my-3 border-slate-700" />
+
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">
+                Total Collateral (ETH):
+              </span>
+              <span className="text-zinc-300">
+                {formatValue(collateralBalance as bigint)} ETH
+              </span>
             </div>
-            <div className="font-medium text-zinc-400">Health Factor:</div>{" "}
-            {/* Darker zinc label */}
-            {/* HF color remains dynamic */}
-            <div className={getHealthFactorColor(healthFactor as bigint)}>
-              {" "}
-              {/* Keep dynamic color */}
-              {formatHealthFactor(healthFactor as bigint)}
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">
+                Collateral Value (USD):
+              </span>
+              <span className="text-zinc-300">
+                $ {formatValue(collateralValueUsd as bigint, 6)}
+              </span>
             </div>
-            <div className="font-medium text-zinc-400">Total Staked (ETH):</div>{" "}
-            {/* Darker zinc label */}
-            <div className="text-zinc-300">
-              {formatValue(stakedBalance as bigint)} ETH
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">Borrowed (LMC):</span>
+              <span className="text-zinc-300">
+                {formatValue(debtBalance as bigint)} LMC
+              </span>
             </div>
-            <div className="font-medium text-zinc-400">
-              Earned Rewards (ETH):
-            </div>{" "}
-            {/* Darker zinc label */}
-            <div className="text-zinc-300">
-              {formatValue(earnedRewards as bigint)} ETH
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">Health Factor:</span>
+              <span className="font-bold text-white">
+                {formatHealthFactor(healthFactor as bigint)}
+              </span>
+            </div>
+
+            <hr className="my-3 border-slate-700" />
+
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">
+                Total Staked (ETH):
+              </span>
+              <span className="text-zinc-300">
+                {formatValue(stakedBalance as bigint)} ETH
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">
+                Earned Rewards (ETH):
+              </span>
+              <span className="text-zinc-300">
+                {formatValue(earnedRewards as bigint)} ETH
+              </span>
+            </div>
+
+            <hr className="my-3 border-slate-700" />
+
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">LMC Contract:</span>
+              <span className="text-zinc-300" title={luminaCoinAddress}>
+                {formatAddress(luminaCoinAddress)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-zinc-400">Manager Contract:</span>
+              <span className="text-zinc-300" title={collateralManagerAddress}>
+                {formatAddress(collateralManagerAddress)}
+              </span>
             </div>
           </div>
         )}
