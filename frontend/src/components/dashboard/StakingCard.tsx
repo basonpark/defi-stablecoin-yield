@@ -20,6 +20,7 @@ import { getContractConfig } from "@/lib/web3/contracts";
 import { parseEther, formatEther } from "viem";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 // TODO: Import contract ABI and address for StakingPool -> Done via getContractConfig
 
@@ -184,7 +185,13 @@ export function StakingCard() {
       toast.error(`Unstake failed: ${unstakeError.message}`, {
         id: "unstake-tx",
       });
-  }, [isUnstaking, isConfirmingUnstake, isConfirmedUnstake, unstakeError, refreshData]);
+  }, [
+    isUnstaking,
+    isConfirmingUnstake,
+    isConfirmedUnstake,
+    unstakeError,
+    refreshData,
+  ]);
 
   useEffect(() => {
     if (isClaiming) toast.loading("Requesting claim...", { id: "claim-tx" });
@@ -196,7 +203,13 @@ export function StakingCard() {
     }
     if (claimError)
       toast.error(`Claim failed: ${claimError.message}`, { id: "claim-tx" });
-  }, [isClaiming, isConfirmingClaim, isConfirmedClaim, claimError, refreshData]);
+  }, [
+    isClaiming,
+    isConfirmingClaim,
+    isConfirmedClaim,
+    claimError,
+    refreshData,
+  ]);
 
   // Aggregate loading state
   const isProcessing =
@@ -208,115 +221,116 @@ export function StakingCard() {
     isConfirmingClaim;
 
   // Format values for display
-  const formattedStaked = stakedBalance
-    ? formatEther(stakedBalance as bigint)
-    : "0.0";
-  const formattedRewards = earnedRewards
-    ? formatEther(earnedRewards as bigint)
-    : "0.0";
+  const formattedStaked =
+    stakedBalance !== undefined ? formatEther(stakedBalance as bigint) : "0.0";
+  const formattedRewards =
+    earnedRewards !== undefined ? formatEther(earnedRewards as bigint) : "0.0";
+
+  // Animation variants (can be reused or defined per component)
+  const cardAnimation = {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.2 },
+    transition: { duration: 0.5, ease: "easeOut" },
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="shadow-lg">
-        <CardHeader>
-          {/* Revert title color */}
-          <CardTitle>ETH Staking</CardTitle>
-          {/* Revert description color */}
-          <CardDescription>Stake ETH to earn ETH rewards.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Display user stats */}
-          <div>
-            {/* Revert paragraph color */}
-            <p className="text-sm text-muted-foreground">
-              Your Staked ETH: {/* Revert value color */}
-              <span className="font-medium text-foreground">
-                {formattedStaked}
-              </span>
-            </p>
-            {/* Revert paragraph color */}
-            <p className="text-sm text-muted-foreground">
-              Earned Rewards (ETH): {/* Revert value color */}
-              <span className="font-medium text-foreground">
-                {formattedRewards}
-              </span>
-            </p>
-          </div>
+    <motion.div {...cardAnimation}>
+      <CardHeader className="pb-4">
+        {/* Adjust title color */}
+        <CardTitle className="text-white">ETH Staking</CardTitle>
+        {/* Adjust description color */}
+        <CardDescription className="text-zinc-400">
+          Stake ETH to earn ETH rewards.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Display user stats */}
+        <div>
+          {/* Adjust paragraph color */}
+          <p className="text-sm text-zinc-400">
+            Your Staked ETH:
+            <span className="font-medium text-zinc-300 ml-1">
+              {formattedStaked}
+            </span>
+          </p>
+          {/* Adjust paragraph color */}
+          <p className="text-sm text-zinc-400">
+            Earned Rewards (ETH):
+            <span className="font-medium text-zinc-300 ml-1">
+              {formattedRewards}
+            </span>
+          </p>
+        </div>
 
-          {/* Stake Section */}
-          <div className="space-y-2">
-            {/* Revert label color */}
-            <label htmlFor="stake-amount" className="text-sm font-medium">
-              Stake ETH
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="stake-amount"
-                type="number"
-                placeholder="0.0 ETH"
-                value={stakeAmount}
-                onChange={(e) => setStakeAmount(e.target.value)}
-                disabled={isProcessing || !isConnected}
-              />
-              <Button
-                onClick={handleStake}
-                disabled={isProcessing || !isConnected || !stakeAmount}
-              >
-                {isStaking || isConfirmingStake ? "Staking..." : "Stake"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Unstake Section */}
-          <div className="space-y-2">
-            {/* Revert label color */}
-            <label htmlFor="unstake-amount" className="text-sm font-medium">
-              Unstake ETH
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="unstake-amount"
-                type="number"
-                placeholder="0.0 ETH"
-                value={unstakeAmount}
-                onChange={(e) => setUnstakeAmount(e.target.value)}
-                disabled={isProcessing || !isConnected}
-              />
-              <Button
-                onClick={handleUnstake}
-                disabled={isProcessing || !isConnected || !unstakeAmount}
-                variant="outline"
-              >
-                {isUnstaking || isConfirmingUnstake
-                  ? "Unstaking..."
-                  : "Unstake"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Claim Rewards Section */}
-          <div className="pt-4 border-t">
+        {/* Stake Section */}
+        <div className="space-y-2">
+          {/* Adjust label color */}
+          <label
+            htmlFor="stake-amount"
+            className="text-sm font-medium text-zinc-400"
+          >
+            Stake ETH
+          </label>
+          <div className="flex gap-2">
+            <Input
+              id="stake-amount"
+              type="number"
+              placeholder="0.0 ETH"
+              value={stakeAmount}
+              onChange={(e) => setStakeAmount(e.target.value)}
+              className="text-white border-zinc-700 placeholder:text-zinc-500 focus:ring-zinc-500 focus:border-zinc-500"
+            />
             <Button
-              onClick={handleClaim}
-              disabled={
-                isProcessing ||
-                !isConnected ||
-                !earnedRewards ||
-                (earnedRewards as bigint) <= BigInt(0)
-              }
-              className="w-full"
+              onClick={handleStake}
+              className="bg-gradient-to-br from-slate-600 to-slate-800 hover:from-slate-700 hover:to-slate-900 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:bg-slate-700 disabled:shadow-none"
             >
-              {isClaiming || isConfirmingClaim
-                ? "Claiming..."
-                : `Claim ${formattedRewards} ETH Rewards`}
+              {isStaking || isConfirmingStake ? "Staking..." : "Stake"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Unstake Section */}
+        <div className="space-y-2">
+          {/* Adjust label color */}
+          <label
+            htmlFor="unstake-amount"
+            className="text-sm font-medium text-zinc-400"
+          >
+            Unstake ETH
+          </label>
+          <div className="flex gap-2">
+            <Input
+              id="unstake-amount"
+              type="number"
+              placeholder="0.0 ETH"
+              value={unstakeAmount}
+              onChange={(e) => setUnstakeAmount(e.target.value)}
+              className="text-white border-zinc-700 placeholder:text-zinc-500 focus:ring-zinc-500 focus:border-zinc-500"
+            />
+            <Button
+              onClick={handleUnstake}
+              variant="outline"
+              className="border-zinc-600 hover:bg-zinc-800 hover:text-white disabled:opacity-50 disabled:border-zinc-700 disabled:text-zinc-500"
+            >
+              {isUnstaking || isConfirmingUnstake ? "Unstaking..." : "Unstake"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Claim Rewards Section */}
+        <div className="pt-4 border-t border-zinc-700">
+          <Button
+            onClick={handleClaim}
+            // Slightly brighter gradient for prominence
+            className="w-full bg-gradient-to-br from-slate-500 to-slate-700 hover:from-slate-600 hover:to-slate-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:bg-slate-600 disabled:shadow-none"
+          >
+            {isClaiming || isConfirmingClaim
+              ? "Claiming..."
+              : `Claim ${formattedRewards} ETH Rewards`}
+          </Button>
+        </div>
+      </CardContent>
     </motion.div>
   );
 }

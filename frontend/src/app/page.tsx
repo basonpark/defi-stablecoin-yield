@@ -7,6 +7,8 @@ import { UserStats } from "@/components/dashboard/UserStats";
 import { HowItWorksContent } from "@/components/HowItWorksContent";
 import { LampContainer } from "@/components/ui/lamp"; // Import LampContainer
 import { motion } from "framer-motion"; // Import motion
+import { Card } from "@/components/ui/card"; // Import Card
+import { cn } from "@/lib/utils"; // Import cn
 
 // Simple animation variants
 const sectionVariants = {
@@ -15,9 +17,17 @@ const sectionVariants = {
 };
 
 export default function Home() {
+  // Define common card classes with transparent gradient
+  const cardClasses = cn(
+    "border border-white/15 backdrop-blur-lg", // Keep border and blur
+    "bg-gradient-to-br from-transparent via-slate-950/30 to-black", // Darker transparent gradient,
+    "shadow-lg shadow-slate-950/30 dark:shadow-[0_10px_30px_-10px_rgba(0,220,255,0.30)]"
+  );
+
   return (
-    <div>
-      {/* Wrap content with LampContainer */}
+    // Apply main background and padding
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black text-white p-4 md:p-8">
+      {/* LampContainer remains the same */}
       <LampContainer>
         <motion.h1
           initial={{ opacity: 0.5, y: 100 }}
@@ -59,25 +69,59 @@ export default function Home() {
         </motion.p>
       </LampContainer>
 
-      {/* Existing Content - positioned below the Lamp effect */}
-      {/* Use relative positioning and z-index to ensure it appears above the lamp background */}
-      <div className="relative z-10 -mt-20 md:-mt-40">
-        {" "}
-        {/* Adjust vertical position */}
-        {/* Add padding top to space it from the Lamp title */}
-        <h1 className="text-center text-3xl font-bold text-slate-200 mb-6 pt-16 md:pt-24">
+      {/* Existing Content - adjust positioning and add card styling */}
+      {/* Adjusted negative margin slightly, review if needed */}
+      <div className="relative z-10 -mt-16 md:-mt-32 px-4">
+        {/* Removed the h1 "Dashboard" title, assuming components have titles */}
+        {/* <h1 className="text-center text-3xl font-bold text-slate-200 mb-6 pt-16 md:pt-24">
           Dashboard
-        </h1>
-        <UserStats />
-        <div className="flex flex-col md:flex-row gap-10 justify-center mt-10">
-          <DepositBorrowCard />
+        </h1> */}
+        {/* Add padding top here instead and use space-y for vertical spacing */}
+        <div className="pt-16 md:pt-24 space-y-10 max-w-4xl mx-auto">
+          {/* UserStats Card - Apply specific styles */}
 
-          <StakingCard />
+          {/* Deposit/Borrow and Staking Cards - Apply specific styles */}
+          <div className="flex flex-col md:flex-row gap-10 justify-center">
+            <Card
+              className={cn(
+                cardClasses,
+                "border border-slate-700 bg-gradient-to-br from-slate-600/70 to-slate-800 shadow-[inset_0_2px_3px_0_rgba(255,255,255,0.08)]",
+                "flex-1"
+              )}
+            >
+              <DepositBorrowCard />
+            </Card>
+            <Card
+              className={cn(
+                cardClasses,
+                "border border-slate-700 bg-gradient-to-br from-slate-600/70 to-slate-800 shadow-[inset_0_2px_3px_0_rgba(255,255,255,0.08)]",
+                "flex-1"
+              )}
+            >
+              <StakingCard />
+            </Card>
+          </div>
+          <Card
+            className={cn(
+              cardClasses,
+              "max-w-4xlborder border-slate-700 bg-gradient-to-br from-slate-600/70 to-slate-800 shadow-[inset_0_2px_3px_0_rgba(255,255,255,0.08)]"
+            )}
+          >
+            <UserStats />
+          </Card>
         </div>
       </div>
 
-      {/* HowItWorks section */}
-      <motion.section
+      {/* HowItWorks section - Use standard cardClasses */}
+      <Card
+        className={cn(
+          cardClasses,
+          "w-full max-w-3xl mx-auto mt-24 p-6 md:p-8 bg-transparent bg-gradient-to-br from-slate-600/40 to-slate-800"
+        )}
+      >
+        <HowItWorksContent />
+      </Card>
+      {/* <motion.section 
         className="w-full max-w-3xl mx-auto mt-24"
         initial="hidden"
         animate="visible"
@@ -85,7 +129,7 @@ export default function Home() {
         transition={{ delay: 0.4 }}
       >
         <HowItWorksContent />
-      </motion.section>
+      </motion.section> */}
     </div>
   );
 }

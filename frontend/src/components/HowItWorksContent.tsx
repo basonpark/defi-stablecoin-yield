@@ -1,18 +1,40 @@
 // /Users/basonpark/Desktop/defi-stablecoin-yield/frontend/src/components/HowItWorksContent.tsx
 "use client";
 
-import React from 'react';
+import React from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Lightbulb, Library, Calculator, Coins, TrendingUp, Terminal, ShieldCheck, Scale } from 'lucide-react';
-import { motion } from 'framer-motion';
+} from "@/components/ui/accordion";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Lightbulb,
+  Library,
+  Calculator,
+  Coins,
+  TrendingUp,
+  Terminal,
+  ShieldCheck,
+  Scale,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 // Function to render math formulas (simple version)
 const MathFormula: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -34,7 +56,7 @@ export function HowItWorksContent() {
       transition={{ duration: 0.5 }}
     >
       {/* Change color to slate-100 */}
-      <h2 className="text-3xl font-bold mb-6 text-center flex items-center justify-center gap-3 text-slate-100">
+      <h2 className="text-3xl font-bold mb-6 text-center flex items-center justify-center gap-3 text-slate-200">
         <Lightbulb className="w-7 h-7" /> How Lumina Works
       </h2>
       {/* Change color to slate-300 */}
@@ -52,13 +74,24 @@ export function HowItWorksContent() {
           {/* Change content color to slate-300 */}
           <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
-              Lumina Finance lets you deposit ETH as collateral to borrow our stablecoin, LuminaCoin (LMC).
-              You can also stake ETH directly to earn rewards.
+              Lumina Finance lets you deposit ETH as collateral to borrow our
+              stablecoin, LuminaCoin (LMC). You can also stake ETH directly to
+              earn rewards.
             </p>
             <p>
-              It&apos;s powered by transparent smart contracts: <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">LuminaCoin</code> (the token),
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">CollateralManager</code> (handles borrowing/lending),
-              and <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">StakingPool</code> (manages staking & rewards).
+              It&apos;s powered by transparent smart contracts:{" "}
+              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                LuminaCoin
+              </code>{" "}
+              (the token),
+              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                CollateralManager
+              </code>{" "}
+              (handles borrowing/lending), and{" "}
+              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                StakingPool
+              </code>{" "}
+              (manages staking & rewards).
             </p>
           </AccordionContent>
         </AccordionItem>
@@ -72,23 +105,53 @@ export function HowItWorksContent() {
           {/* Change content color to slate-300 */}
           <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
-              This number shows the safety of your loan. Keep it above <strong className="font-semibold text-slate-100">{minHealthFactor.toFixed(1)}</strong> to avoid liquidation risk!
+              This number shows the safety of your loan. Keep it above{" "}
+              <strong className="font-semibold text-slate-100">
+                {minHealthFactor.toFixed(1)}
+              </strong>{" "}
+              to avoid liquidation risk!
             </p>
             <MathFormula>
               HF = (Collateral Value * Liquidation Threshold) / Debt Value
             </MathFormula>
             {/* Ensure list items inherit slate-300 */}
             <ul className="list-disc list-inside space-y-1 pl-4 text-sm">
-              <li><strong className="font-semibold text-slate-100">Collateral Value (USD) =</strong> ETH Deposited * ETH Price</li>
-              <li><strong className="font-semibold text-slate-100">Liquidation Threshold =</strong> {liquidationThresholdPercent}% (or {liquidationThresholdPercent / 100})</li>
-              <li><strong className="font-semibold text-slate-100">Debt Value (USD) =</strong> LMC Borrowed</li>
+              <li>
+                <strong className="font-semibold text-slate-100">
+                  Collateral Value (USD) =
+                </strong>{" "}
+                ETH Deposited * ETH Price
+              </li>
+              <li>
+                <strong className="font-semibold text-slate-100">
+                  Liquidation Threshold =
+                </strong>{" "}
+                {liquidationThresholdPercent}% (or{" "}
+                {liquidationThresholdPercent / 100})
+              </li>
+              <li>
+                <strong className="font-semibold text-slate-100">
+                  Debt Value (USD) =
+                </strong>{" "}
+                LMC Borrowed
+              </li>
             </ul>
-             <Alert variant="default" className="bg-blue-900/30 border-blue-700 text-slate-300 mt-4"> {/* Adjusted Alert styling */}
-               <ShieldCheck className="h-4 w-4 text-blue-400" /> {/* Adjusted icon color */}
-               <AlertTitle className="text-slate-100">Stay Healthy!</AlertTitle> {/* Adjusted title color */}
-               <AlertDescription>
-                 If ETH price drops, your HF falls. Repay LMC or add ETH to boost it.
-               </AlertDescription>
+            <Alert
+              variant="default"
+              className="bg-blue-900/30 border-blue-700 text-slate-300 mt-4"
+            >
+              {" "}
+              {/* Adjusted Alert styling */}
+              <ShieldCheck className="h-4 w-4 text-blue-400" />{" "}
+              {/* Adjusted icon color */}
+              <AlertTitle className="text-slate-100">
+                Stay Healthy!
+              </AlertTitle>{" "}
+              {/* Adjusted title color */}
+              <AlertDescription>
+                If ETH price drops, your HF falls. Repay LMC or add ETH to boost
+                it.
+              </AlertDescription>
             </Alert>
           </AccordionContent>
         </AccordionItem>
@@ -102,24 +165,38 @@ export function HowItWorksContent() {
           {/* Change content color to slate-300 */}
           <AccordionContent className="space-y-3 pl-8 text-base text-slate-300">
             <p>
-              Deposit ETH into the <strong className="font-semibold text-slate-100">StakingPool</strong> contract to earn passive rewards.
-              Your reward share depends on how much you stake and for how long, relative to the total pool.
+              Deposit ETH into the{" "}
+              <strong className="font-semibold text-slate-100">
+                StakingPool
+              </strong>{" "}
+              contract to earn passive rewards. Your reward share depends on how
+              much you stake and for how long, relative to the total pool.
             </p>
-             <Alert variant="default" className="bg-muted/50 border-slate-700 text-slate-300 mt-4"> {/* Adjusted Alert styling */}
-               <AlertTitle className="text-slate-100">Note on APY</AlertTitle> {/* Adjusted title color */}
-               <AlertDescription>
-                 The dashboard shows raw earned rewards, not a projected APY, as it depends on variable factors.
-               </AlertDescription>
+            <Alert
+              variant="default"
+              className="bg-muted/50 border-slate-700 text-slate-300 mt-4"
+            >
+              {" "}
+              {/* Adjusted Alert styling */}
+              <AlertTitle className="text-slate-100">
+                Note on APY
+              </AlertTitle>{" "}
+              {/* Adjusted title color */}
+              <AlertDescription>
+                The dashboard shows raw earned rewards, not a projected APY, as
+                it depends on variable factors.
+              </AlertDescription>
             </Alert>
           </AccordionContent>
         </AccordionItem>
-
       </Accordion>
 
       {/* === Glossary === */}
       <Card className="mt-10 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Library className="w-5 h-5"/> Quick Glossary</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Library className="w-5 h-5" /> Quick Glossary
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -140,19 +217,26 @@ export function HowItWorksContent() {
               </TableRow>
               <TableRow>
                 <TableCell className="font-semibold">Health Factor</TableCell>
-                <TableCell>Loan safety score (keep &gt; {minHealthFactor.toFixed(1)}).</TableCell>
+                <TableCell>
+                  Loan safety score (keep &gt; {minHealthFactor.toFixed(1)}).
+                </TableCell>
               </TableRow>
-               <TableRow>
+              <TableRow>
                 <TableCell className="font-semibold">Liq. Threshold</TableCell>
-                <TableCell>Max borrowing % ({liquidationThresholdPercent}%) vs collateral value.</TableCell>
+                <TableCell>
+                  Max borrowing % ({liquidationThresholdPercent}%) vs collateral
+                  value.
+                </TableCell>
               </TableRow>
-               <TableRow>
+              <TableRow>
                 <TableCell className="font-semibold">Staking</TableCell>
                 <TableCell>Depositing ETH to earn rewards.</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-semibold">Oracle</TableCell>
-                <TableCell>Provides real-time price data (e.g., ETH/USD).</TableCell>
+                <TableCell>
+                  Provides real-time price data (e.g., ETH/USD).
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
